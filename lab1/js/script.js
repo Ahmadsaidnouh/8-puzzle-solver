@@ -9,6 +9,8 @@ let previousBtn = document.getElementById("prev");
 let nextBtn = document.getElementById("next");
 let stepMethod = false;
 let currentStep = 0;
+let currentlySolvedState = "";
+let initialStateInpt = document.getElementById("initialState");
 
 // start inputs validation functions
 function isValidIntialState(state)
@@ -59,7 +61,7 @@ function callSolve()
 {
     hideAllAlerts();
 
-    let initialState = document.getElementById("initialState").value;
+    let initialState = initialStateInpt.value;
     let algoType = Number(document.getElementById("algorithmType").value);
 
     let flag = 0;
@@ -73,9 +75,11 @@ function callSolve()
         displayselectedAlert(2);
     }
 
-    if (flag)
-        return
-
+    if (flag || (currentlySolvedState == initialState))
+    return;
+    
+    currentlySolvedState = initialState;
+    console.log("solve");
     initialState = Number(initialState);
 
     Module.ccall('solve',
@@ -242,10 +246,19 @@ solveBtn.addEventListener("click", () =>
     callSolve();
     console.timeEnd("c++");
 })
-// document.getElementById("initialState").addEventListener("keyup", () => {
-//     let state = document.getElementById("initialState").value;
-//     if(isValidIntialState(state))
-//     {
-//         displayInitialState(state);
-//     }
-// })
+initialStateInpt.addEventListener("keyup", () => {
+    let state = initialStateInpt.value;
+    if(isValidIntialState(state))
+    {
+        displayInitialState(state);
+    }
+})
+initialStateInpt.addEventListener("focus", () => {
+    // console.log("daf");
+    let state = initialStateInpt.value;
+    if(isValidIntialState(state))
+    {
+        currentlySolvedState = "";
+        displayInitialState(state);
+    }
+})

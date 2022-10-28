@@ -4,6 +4,8 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <unordered_map>
+#include <map>
 #include <emscripten.h>
 
 using namespace std;
@@ -13,7 +15,7 @@ string stringifyPath(vector<int> path)
     // don't touch this code please ;_;
     int indexZero, oldR, oldC, newR, newC;
     string newZero, direction, currentZero, stringPath = "";
-    for (unsigned long long i = 0; i < path.size() - 1; i++)
+    for (unsigned long long i = path.size() - 1; i >= 1; --i)
     {
         if ((path[i] / 100000000) == 0)
         {
@@ -29,7 +31,7 @@ string stringifyPath(vector<int> path)
         }
         currentZero = to_string(indexZero);
 
-        if ((path[i + 1] / 100000000) == 0)
+        if ((path[i - 1] / 100000000) == 0)
         {
             indexZero = 0;
             newR = 0;
@@ -37,7 +39,7 @@ string stringifyPath(vector<int> path)
         }
         else
         {
-            indexZero = to_string(path[i + 1]).find('0');
+            indexZero = to_string(path[i - 1]).find('0');
             newR = indexZero / 3;
             newC = indexZero % 3;
         }
@@ -154,7 +156,48 @@ vector<int> findNeighbors(int state)
 vector<int> solveBFS(int initialState)
 {
     vector<int> finalPath;
-    // code here
+
+    unordered_map<int, int> parentMap; // bec insertion is O(1)
+    vector<int> frontier;
+    map<int, bool> explored; // bec find() is O(lg(n)) in worst case. unordered_map is O(n) in worst case.
+    map<int, bool> isInFrontier;
+    vector<int> neighbors;
+    int state;
+
+    frontier.push_back(initialState);
+    parentMap[initialState] = initialState;
+    isInFrontier[initialState] = true;
+
+    while (!frontier.empty())
+    {
+        state = frontier[0];
+        frontier.erase(frontier.begin());
+        isInFrontier[state] = false;
+        explored[state] = true;
+
+        if (state == 12345678)
+            break;
+
+        neighbors = findNeighbors(state);
+
+        for (auto neighbor : neighbors)
+        {
+            if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
+            {
+                frontier.push_back(neighbor);
+                isInFrontier[neighbor] = true;
+                parentMap[neighbor] = state;
+            }
+        }
+    }
+    
+    state = 12345678;
+    finalPath.push_back(state);
+    while (state != initialState)
+    {
+        finalPath.push_back(parentMap[state]);
+        state = parentMap[state];
+    }
 
     return finalPath;
 }
@@ -213,11 +256,11 @@ extern "C"
             // path.push_back(120345678);
             // path.push_back(102345678);
             // path.push_back(12345678);
-            path.push_back(125348670);
-            path.push_back(125340678);
-            path.push_back(120345678);
-            path.push_back(102345678);
-            path.push_back(12345678);
+            // path.push_back(125348670);
+            // path.push_back(125340678);
+            // path.push_back(120345678);
+            // path.push_back(102345678);
+            // path.push_back(12345678);
 
             result = stringifyPath(path);
         }
