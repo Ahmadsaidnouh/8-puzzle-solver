@@ -340,8 +340,8 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
     set<int> isInFrontier;
     vector<int> neighbors;
-    int state;
-    float cost;
+    int state, newF;
+    float f, g;
     long long expandedCount = 0;
 
     frontier.push(make_pair(hero(initialState, type), initialState));
@@ -350,9 +350,10 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
 
     while (!frontier.empty())
     {
-        cost = frontier.top().first;
+        f = frontier.top().first;
         state = frontier.top().second;
         frontier.pop();
+        g = f - hero(state, type);
 
         if (explored.find(state) != explored.end())
             continue;
@@ -370,19 +371,19 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
         {
             if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
             {
-                int tot = 1 + cost + hero(neighbor, type);
-                frontier.push(make_pair(tot, neighbor));
-                costMap[neighbor] = tot;
+                newF = 1 + g + hero(neighbor, type);
+                frontier.push(make_pair(newF, neighbor));
+                costMap[neighbor] = newF;
                 isInFrontier.emplace(neighbor);
                 parentMap[neighbor] = state;
             }
             else if ((explored.find(neighbor) == explored.end()))
             {
-                int tot = 1 + cost + hero(neighbor, type);
-                if (tot < costMap[neighbor])
+                newF = 1 + g + hero(neighbor, type);
+                if (newF < costMap[neighbor])
                 {
-                    frontier.push(make_pair(tot, neighbor));
-                    costMap[neighbor] = tot;
+                    frontier.push(make_pair(newF, neighbor));
+                    costMap[neighbor] = newF;
                     parentMap[neighbor] = state;
                 }
             }
