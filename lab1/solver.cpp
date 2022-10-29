@@ -7,9 +7,67 @@
 #include <unordered_map>
 #include <map>
 #include <set>
+#include <tuple>
+#include <queue>
+#include <utility>
 #include <emscripten.h>
 
 using namespace std;
+
+
+typedef pair<float, int> pi;
+
+float hero(int state, int type)
+{
+    vector<pair<int, int>> indexes = {
+        {0, 1},
+        {0, 2},
+        {1, 0},
+        {1, 1},
+        {1, 2},
+        {2, 0},
+        {2, 1},
+        {2, 2}};
+    // for (auto x : indexes)
+    //     cout << x.first << " " << x.second << endl;
+
+    string strState = to_string(state);
+    // int i = 0;
+    if (strState.size() == 8)
+    {
+        // i = 1;
+        strState.insert(0, "0");
+    }
+    int r1, c1, r2, c2;
+    float temp, heuristics = 0;
+    for (int i = 0; i < 9; i++)
+    {
+        if (strState[i] == '0')
+            continue;
+        r1 = i / 3;
+        c1 = i % 3;
+        r2 = indexes[strState[i] - 48 - 1].first;
+        c2 = indexes[strState[i] - 48 - 1].second;
+
+        if (type == 0)
+        {
+            temp = abs(r1 - r2) + abs(c1 - c2);
+        }
+        else
+        {
+            temp = sqrt(abs(r1 - r2) * abs(r1 - r2) + abs(c1 - c2) * abs(c1 - c2));
+        }
+
+        heuristics += temp;
+
+        // cout << temp << " " << heuristics << endl;
+    }
+
+    // if (type == 0) {
+    //     if((state))
+    // }
+    return heuristics;
+}
 
 string stringifyPath(vector<int> path)
 {
@@ -154,27 +212,157 @@ vector<int> getNeighbors(int state)
     return neighbors;
 }
 
-vector<int> solveBFS(int initialState)
+// tuple<vector<int>, long long, long long> solveBFS(int initialState)
+// {
+//     vector<int> finalPath;
+
+//     unordered_map<int, int> parentMap; // bec insertion is O(1)
+//     vector<int> frontier;
+//     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
+//     set<int> isInFrontier;
+//     vector<int> neighbors;
+//     int state;
+//     long long expandedCount = 0;
+
+//     frontier.push_back(initialState);
+//     parentMap[initialState] = initialState;
+//     isInFrontier.emplace(initialState);
+
+//     while (!frontier.empty())
+//     {
+//         state = frontier[0];
+//         frontier.erase(frontier.begin());
+//         isInFrontier.emplace(state);
+//         explored.emplace(state);
+//         ++expandedCount;
+
+//         if (state == 12345678)
+//             break;
+
+//         neighbors = getNeighbors(state);
+
+//         for (auto neighbor : neighbors)
+//         {
+//             if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
+//             {
+//                 frontier.push_back(neighbor);
+//                 isInFrontier.emplace(neighbor);
+//                 parentMap[neighbor] = state;
+//             }
+//         }
+//     }
+
+//     state = 12345678;
+//     finalPath.push_back(state);
+//     while (state != initialState)
+//     {
+//         finalPath.push_back(parentMap[state]);
+//         state = parentMap[state];
+//     }
+
+//     tuple<vector<int>, long long, long long> result;
+//     result = make_tuple(finalPath, expandedCount, finalPath.size());
+
+//     return result;
+// }
+
+// tuple<vector<int>, long long, long long> solveDFS(int initialState)
+// {
+//     vector<int> finalPath;
+
+//     unordered_map<int, int> parentMap; // bec insertion is O(1)
+//     vector<int> frontier;
+//     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
+//     set<int> isInFrontier;
+//     vector<int> neighbors;
+//     int state;
+//     long long expandedCount = 0, depth = 0, maxDepth = 0;
+
+//     frontier.push_back(initialState);
+//     parentMap[initialState] = initialState;
+//     isInFrontier.emplace(initialState);
+
+//     while (!frontier.empty())
+//     {
+//         state = frontier.back();
+//         frontier.pop_back();
+//         isInFrontier.emplace(state);
+//         explored.emplace(state);
+//         ++expandedCount;
+
+//         if (state == 12345678)
+//             break;
+
+//         neighbors = getNeighbors(state);
+
+//         bool neighborIsInserted = false;
+
+//         for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
+//         {
+//             if ((isInFrontier.find(*neighbor) == isInFrontier.end()) && (explored.find(*neighbor) == explored.end()))
+//             {
+//                 if (!neighborIsInserted)
+//                 {
+//                     neighborIsInserted = true;
+//                     ++depth;
+//                     maxDepth = maxDepth > depth ? maxDepth : depth;
+//                 }
+//                 frontier.push_back(*neighbor);
+//                 isInFrontier.emplace(*neighbor);
+//                 parentMap[*neighbor] = state;
+//             }
+//         }
+//         if (neighbors.size() <= 0)
+//             --depth;
+//     }
+
+//     state = 12345678;
+//     finalPath.push_back(state);
+//     while (state != initialState)
+//     {
+//         finalPath.push_back(parentMap[state]);
+//         state = parentMap[state];
+//     }
+
+//     tuple<vector<int>, long long, long long> result;
+//     result = make_tuple(finalPath, expandedCount, finalPath.size());
+
+//     return finalPath;
+// }
+
+vector<int> solveAStar(int initialState, int type)
 {
     vector<int> finalPath;
+    // code here
+    // type = 0 ==> manhattan
+    // type = 1 ==> euclidean
 
     unordered_map<int, int> parentMap; // bec insertion is O(1)
-    vector<int> frontier;
+    unordered_map<int, int> costMap;   // bec insertion is O(1)
+    priority_queue<pi, vector<pi>, greater<pi>> frontier;
     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
     set<int> isInFrontier;
     vector<int> neighbors;
     int state;
+    float cost;
+    long long expandedCount = 0;
 
-    frontier.push_back(initialState);
+    frontier.push(make_pair(hero(initialState, type), initialState));
     parentMap[initialState] = initialState;
     isInFrontier.emplace(initialState);
 
     while (!frontier.empty())
     {
-        state = frontier[0];
-        frontier.erase(frontier.begin());
+        cost = frontier.top().first;
+        state = frontier.top().second;
+        frontier.pop();
+
+        if (explored.find(state) != explored.end())
+            continue;
+
         isInFrontier.emplace(state);
         explored.emplace(state);
+        ++expandedCount;
 
         if (state == 12345678)
             break;
@@ -185,62 +373,25 @@ vector<int> solveBFS(int initialState)
         {
             if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
             {
-                frontier.push_back(neighbor);
+                int tot = 1 + cost + hero(neighbor, type);
+                frontier.push(make_pair(tot, neighbor));
+                costMap[neighbor] = tot;
                 isInFrontier.emplace(neighbor);
                 parentMap[neighbor] = state;
             }
-        }
-    }
-    
-    state = 12345678;
-    finalPath.push_back(state);
-    while (state != initialState)
-    {
-        finalPath.push_back(parentMap[state]);
-        state = parentMap[state];
-    }
-
-    return finalPath;
-}
-
-vector<int> solveDFS(int initialState)
-{
-    vector<int> finalPath;
-
-    unordered_map<int, int> parentMap; // bec insertion is O(1)
-    vector<int> frontier;
-    set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
-    set<int> isInFrontier;
-    vector<int> neighbors;
-    int state;
-
-    frontier.push_back(initialState);
-    parentMap[initialState] = initialState;
-    isInFrontier.emplace(initialState);
-
-    while (!frontier.empty())
-    {
-        state = frontier.back();
-        frontier.pop_back();
-        isInFrontier.emplace(state);
-        explored.emplace(state);
-
-        if (state == 12345678)
-            break;
-
-        neighbors = getNeighbors(state);
-
-        for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
-        {
-            if ((isInFrontier.find(*neighbor) == isInFrontier.end()) && (explored.find(*neighbor) == explored.end()))
+            else if ((explored.find(neighbor) == explored.end()))
             {
-                frontier.push_back(*neighbor);
-                isInFrontier.emplace(*neighbor);
-                parentMap[*neighbor] = state;
+                int tot = 1 + cost + hero(neighbor, type);
+                if (tot < costMap[neighbor])
+                {
+                    frontier.push(make_pair(tot, neighbor));
+                    costMap[neighbor] = tot;
+                    parentMap[neighbor] = state;
+                }
             }
         }
     }
-    
+
     state = 12345678;
     finalPath.push_back(state);
     while (state != initialState)
@@ -248,16 +399,6 @@ vector<int> solveDFS(int initialState)
         finalPath.push_back(parentMap[state]);
         state = parentMap[state];
     }
-
-    return finalPath;
-}
-
-vector<int> solveAStar(int initialState, int type)
-{
-    vector<int> finalPath;
-    // code here
-    // type = 0 ==> manhattan
-    // type = 1 ==> euclidean
 
     return finalPath;
 }
@@ -277,10 +418,10 @@ extern "C"
             switch (algorithmType)
             {
             case 1:
-                path = solveBFS(initialState);
+                // path = solveBFS(initialState);
                 break;
             case 2:
-                path = solveDFS(initialState);
+                // path = solveDFS(initialState);
                 break;
             case 3:
                 path = solveAStar(initialState, 0);

@@ -87,8 +87,11 @@ int main()
     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
     set<int> isInFrontier;
     vector<int> neighbors;
+    // vector<int> neighbors;
+    map<long long, long long> depthMap;
     int state;
     bool answerExist = false;
+    int depth = 0, maxDepth = 0;
 
     frontier.push_back(inState);
     parentMap[inState] = inState;
@@ -118,43 +121,33 @@ int main()
         //     cout << "tst nej = " << n << endl;
 
         // for (auto neighbor : neighbors)
+        bool firstTime = true;
+        // if(neighbors.size() <= 0)
+        //     --depth;
+
         for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
         {
             // cout << "neigh = " << *neighbor << endl;
             // int xxx = *neighbor;
             if ((isInFrontier.find(*neighbor) == isInFrontier.end()) && (explored.find(*neighbor) == explored.end()))
             {
+                if(firstTime)
+                {
+                    firstTime = false;
+                    ++depth;
+                    maxDepth = maxDepth > depth ? maxDepth : depth;
+                }
+                ++depthMap[depth];
                 frontier.push_back(*neighbor);
                 isInFrontier.emplace(*neighbor);
                 // cout << "yes\n";
                 parentMap[*neighbor] = state;
             }
-            // try
-            // {
-            //     explored.at(neighbor);
-            // }
-            // catch (const std::exception &e)
-            // {
-            //     try
-            //     {
-            //         inFrontier.at(neighbor);
-            //         if (!inFrontier[neighbor])
-            //         {
-            //             frontier.push_back(neighbor);
-            //             inFrontier[neighbor] = true;
+        }
 
-            //             parentMap[neighbor] = s;
-            //         }
-            //     }
-            //     catch (const std::exception &e)
-            //     {
-
-            //         frontier.push_back(neighbor);
-            //         inFrontier[neighbor] = true;
-
-            //         parentMap[neighbor] = s;
-            //     }
-            // }
+        if(firstTime && depthMap[depth] == 1) {
+            --depth;
+            --depthMap[depth];
         }
         // cout << "******************\n";
     }
@@ -173,12 +166,12 @@ int main()
         cout << xx << "<---" << endl;
 
     }
-    cout << parentMap.size() << " " << path.size();
+    cout << parentMap.size() << " " << path.size()<< " " << maxDepth;
     // for (auto mp : parentMap)
     // {
     //     cout << mp.first << "-->" << mp.second << endl;
     // }
 
-    cout << answerExist;
+    // cout << answerExist;
     return 0;
 }

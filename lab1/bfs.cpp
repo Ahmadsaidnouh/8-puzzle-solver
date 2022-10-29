@@ -87,6 +87,7 @@ int main()
     map<int, bool> isInFrontier;
     vector<int> neighbors;
     int state;
+    int depth = 0, maxDepth = 0;
     // bool answerExist = false;
 
     frontier.push_back(inState);
@@ -110,12 +111,22 @@ int main()
 
         neighbors = getNeighbors(state);
 
+        bool firstTime = true;
+        if(neighbors.size() <= 0)
+            --depth;
+
         for (auto neighbor : neighbors)
         {
             // cout << "neigh = " << neighbor << endl;
 
             if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
             {
+                if(firstTime)
+                {
+                    firstTime = false;
+                    ++depth;
+                    maxDepth = maxDepth > depth ? maxDepth : depth;
+                }
                 frontier.push_back(neighbor);
                 isInFrontier[neighbor] = true;
                 // cout << "yes\n";
@@ -165,7 +176,7 @@ int main()
         cout << xx << "<---" << endl;
 
     }
-    cout << parentMap.size() << " " << path.size();
+    cout << parentMap.size() << " " << path.size() << " " << maxDepth;
     // for (auto mp : parentMap)
     // {
     //     cout << mp.first << "-->" << mp.second << endl;
