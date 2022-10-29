@@ -110,7 +110,14 @@ function SolutionPanel(result)
 function parseResult(result)
 {
     // console.log(result);
-    let moves = result.split(",");
+    let response = result.split(";");
+
+    let path = response[0];
+    let expandedCount = response[1];
+    let maxDepth = response[2];
+    console.log("*****",expandedCount,maxDepth);
+    
+    let moves = path.split(",");
     moves.pop();
     // console.log(moves);
     let tempMoves = [];
