@@ -11,6 +11,15 @@ let stepMethod = false;
 let currentStep = 0;
 let currentlySolvedState = "";
 let initialStateInpt = document.getElementById("initialState");
+let algorithmType = document.getElementById("algorithmType");
+let excTime = document.getElementById("excTime");
+let cost = document.getElementById("cost");
+let depth = document.getElementById("depth");
+let expanded = document.getElementById("expanded");
+let excTimeValue;
+let costValue;
+let depthValue;
+let expandedValue;
 
 // start inputs validation functions
 function isValidIntialState(state)
@@ -113,9 +122,9 @@ function parseResult(result)
     let response = result.split(";");
 
     let path = response[0];
-    let expandedCount = response[1];
-    let maxDepth = response[2];
-    console.log("*****",expandedCount,maxDepth);
+    expandedValue = response[1];
+    depthValue = response[2];
+    // console.log("*****",expandedCount,maxDepth);
     
     let moves = path.split(",");
     moves.pop();
@@ -133,6 +142,7 @@ function parseResult(result)
         tempMoves.push(tempMove);
         tempMove = {}
     })
+    costValue = tempMoves.length;
     return tempMoves;
 }
 // end main functions that calls the c++ code
@@ -175,6 +185,10 @@ function generateAnimations()
 {
     let count = 0;
     let len = movementsArr.length - 1;
+    
+    if(len == -1)
+        return
+
     animate(movementsArr[count].newZero, movementsArr[count].direction, movementsArr[count].currentZero);
     ++count;
     let timeInt = setInterval(() =>
@@ -250,16 +264,16 @@ nextBtn.addEventListener("click", () =>
 // 
 // 
 // 
-// add click event listener to Solve button
+// add click event listener to handle various user interactions
 solveBtn.addEventListener("click", () =>
 {
     translationValue = $("#slot0").innerWidth();
     console.time("c++");
     let t1 = performance.now();
     callSolve();
-    let executionTime = performance.now() - t1;
+    excTimeValue = performance.now() - t1;
     console.timeEnd("c++");
-    console.log(executionTime);
+    displayStatistics();
 })
 initialStateInpt.addEventListener("keyup", () =>
 {
@@ -268,12 +282,34 @@ initialStateInpt.addEventListener("keyup", () =>
         displayInitialState(state);
     }
 })
-initialStateInpt.addEventListener("focus", () =>
+initialStateInpt.addEventListener("change", () =>
 {
-    // console.log("daf");
+    resetStatistics();
     let state = initialStateInpt.value;
     if (isValidIntialState(state)) {
         currentlySolvedState = "";
         displayInitialState(state);
     }
 })
+algorithmType.addEventListener("change", () =>
+{
+    resetStatistics();
+    currentlySolvedState = "";
+    let state = initialStateInpt.value;
+    if (isValidIntialState(state)) {
+        displayInitialState(state);
+    }
+})
+
+function resetStatistics() {
+    excTime.innerText = "-----";
+    cost.innerText = "-----";
+    depth.innerText = "-----";
+    expanded.innerText = "-----";
+}
+function displayStatistics() {
+    excTime.innerText = excTimeValue + " ms";
+    cost.innerText = costValue + " moves";
+    depth.innerText = depthValue + " nodes";
+    expanded.innerText = expandedValue + " nodes";
+}
