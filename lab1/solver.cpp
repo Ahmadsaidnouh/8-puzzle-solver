@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <set>
 #include <emscripten.h>
 
 using namespace std;
@@ -87,7 +88,7 @@ bool isSolvable(int state)
     return (invCount % 2 == 0);
 }
 
-vector<int> findNeighbors(int state)
+vector<int> getNeighbors(int state)
 {
     // don't touch this code please ;_;
     vector<int> neighbors;
@@ -159,33 +160,33 @@ vector<int> solveBFS(int initialState)
 
     unordered_map<int, int> parentMap; // bec insertion is O(1)
     vector<int> frontier;
-    map<int, bool> explored; // bec find() is O(lg(n)) in worst case. unordered_map is O(n) in worst case.
-    map<int, bool> isInFrontier;
+    set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
+    set<int> isInFrontier;
     vector<int> neighbors;
     int state;
 
     frontier.push_back(initialState);
     parentMap[initialState] = initialState;
-    isInFrontier[initialState] = true;
+    isInFrontier.emplace(initialState);
 
     while (!frontier.empty())
     {
         state = frontier[0];
         frontier.erase(frontier.begin());
-        isInFrontier[state] = false;
-        explored[state] = true;
+        isInFrontier.emplace(state);
+        explored.emplace(state);
 
         if (state == 12345678)
             break;
 
-        neighbors = findNeighbors(state);
+        neighbors = getNeighbors(state);
 
         for (auto neighbor : neighbors)
         {
             if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
             {
                 frontier.push_back(neighbor);
-                isInFrontier[neighbor] = true;
+                isInFrontier.emplace(neighbor);
                 parentMap[neighbor] = state;
             }
         }
@@ -205,7 +206,48 @@ vector<int> solveBFS(int initialState)
 vector<int> solveDFS(int initialState)
 {
     vector<int> finalPath;
-    // code here
+
+    unordered_map<int, int> parentMap; // bec insertion is O(1)
+    vector<int> frontier;
+    set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
+    set<int> isInFrontier;
+    vector<int> neighbors;
+    int state;
+
+    frontier.push_back(initialState);
+    parentMap[initialState] = initialState;
+    isInFrontier.emplace(initialState);
+
+    while (!frontier.empty())
+    {
+        state = frontier.back();
+        frontier.pop_back();
+        isInFrontier.emplace(state);
+        explored.emplace(state);
+
+        if (state == 12345678)
+            break;
+
+        neighbors = getNeighbors(state);
+
+        for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
+        {
+            if ((isInFrontier.find(*neighbor) == isInFrontier.end()) && (explored.find(*neighbor) == explored.end()))
+            {
+                frontier.push_back(*neighbor);
+                isInFrontier.emplace(*neighbor);
+                parentMap[*neighbor] = state;
+            }
+        }
+    }
+    
+    state = 12345678;
+    finalPath.push_back(state);
+    while (state != initialState)
+    {
+        finalPath.push_back(parentMap[state]);
+        state = parentMap[state];
+    }
 
     return finalPath;
 }

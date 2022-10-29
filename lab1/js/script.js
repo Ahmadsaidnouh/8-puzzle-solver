@@ -76,8 +76,10 @@ function callSolve()
     }
 
     if (flag || (currentlySolvedState == initialState))
-    return;
-    
+        return;
+
+
+
     currentlySolvedState = initialState;
     console.log("solve");
     initialState = Number(initialState);
@@ -95,7 +97,7 @@ function SolutionPanel(result)
     }
     else {
         movementsArr = parseResult(result);
-        console.log(movementsArr);
+        // console.log(movementsArr);
         if (stepMethod) {
             previousBtn.disabled = false;
             nextBtn.disabled = false;
@@ -107,17 +109,17 @@ function SolutionPanel(result)
 }
 function parseResult(result)
 {
-    console.log(result);
+    // console.log(result);
     let moves = result.split(",");
     moves.pop();
-    console.log(moves);
+    // console.log(moves);
     let tempMoves = [];
     let tempMove = {};
     let temp;
     moves.forEach((move) =>
     {
         temp = move.split("-");
-        console.log(temp);
+        // console.log(temp);
         tempMove.newZero = temp[0];
         tempMove.direction = temp[1];
         tempMove.currentZero = temp[2];
@@ -170,11 +172,14 @@ function generateAnimations()
     ++count;
     let timeInt = setInterval(() =>
     {
-        if (count >= len) {
+        if (count > len) {
             clearInterval(timeInt);
         }
-        animate(movementsArr[count].newZero, movementsArr[count].direction, movementsArr[count].currentZero);
-        count++
+        else {
+
+            animate(movementsArr[count].newZero, movementsArr[count].direction, movementsArr[count].currentZero);
+            count++
+        }
     }, 500)
 }
 function displayInitialState(state)
@@ -243,21 +248,24 @@ solveBtn.addEventListener("click", () =>
 {
     translationValue = $("#slot0").innerWidth();
     console.time("c++");
+    let t1 = performance.now();
     callSolve();
+    let executionTime = performance.now() - t1;
     console.timeEnd("c++");
+    console.log(executionTime);
 })
-initialStateInpt.addEventListener("keyup", () => {
+initialStateInpt.addEventListener("keyup", () =>
+{
     let state = initialStateInpt.value;
-    if(isValidIntialState(state))
-    {
+    if (isValidIntialState(state)) {
         displayInitialState(state);
     }
 })
-initialStateInpt.addEventListener("focus", () => {
+initialStateInpt.addEventListener("focus", () =>
+{
     // console.log("daf");
     let state = initialStateInpt.value;
-    if(isValidIntialState(state))
-    {
+    if (isValidIntialState(state)) {
         currentlySolvedState = "";
         displayInitialState(state);
     }

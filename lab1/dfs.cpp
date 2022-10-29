@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -83,43 +84,50 @@ int main()
 
     unordered_map<int, int> parentMap; // bec insertion is O(1)
     vector<int> frontier;
-    map<int, bool> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
-    map<int, bool> isInFrontier;
+    set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
+    set<int> isInFrontier;
     vector<int> neighbors;
     int state;
-    // bool answerExist = false;
+    bool answerExist = false;
 
     frontier.push_back(inState);
     parentMap[inState] = inState;
-    isInFrontier[inState] = true;
+    // isInFrontier[inState] = true;
+    isInFrontier.emplace(inState);
+    // int state;
 
     while (!frontier.empty())
     {
-        state = frontier[0];
-        frontier.erase(frontier.begin());
-        isInFrontier[state] = false;
+        state = frontier.back();
+        frontier.pop_back();
+        // frontier.erase(frontier.begin());
+        isInFrontier.emplace(state);
         // cout << "s = " << state << endl;
-        explored[state] = true;
+        // explored[state] = true;
+        explored.emplace(state);
 
         if (state == 12345678)
         {
-            // answerExist = true;
+            answerExist = true;
             // parentMap[s] = 12345678;
             break;
         }
 
         neighbors = getNeighbors(state);
+        // for(auto n : neighbors)
+        //     cout << "tst nej = " << n << endl;
 
-        for (auto neighbor : neighbors)
+        // for (auto neighbor : neighbors)
+        for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
         {
-            // cout << "neigh = " << neighbor << endl;
-
-            if ((isInFrontier.find(neighbor) == isInFrontier.end()) && (explored.find(neighbor) == explored.end()))
+            // cout << "neigh = " << *neighbor << endl;
+            // int xxx = *neighbor;
+            if ((isInFrontier.find(*neighbor) == isInFrontier.end()) && (explored.find(*neighbor) == explored.end()))
             {
-                frontier.push_back(neighbor);
-                isInFrontier[neighbor] = true;
+                frontier.push_back(*neighbor);
+                isInFrontier.emplace(*neighbor);
                 // cout << "yes\n";
-                parentMap[neighbor] = state;
+                parentMap[*neighbor] = state;
             }
             // try
             // {
@@ -171,6 +179,6 @@ int main()
     //     cout << mp.first << "-->" << mp.second << endl;
     // }
 
-    // cout << answerExist;
+    cout << answerExist;
     return 0;
 }
