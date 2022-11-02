@@ -16,7 +16,9 @@ using namespace std;
 
 typedef pair<float, int> pi;
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// start utility functions////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 string stringifyPath(tuple<vector<int>, long long, long long> result)
 {
     // don't touch this code please ;_;
@@ -114,9 +116,9 @@ float hero(int state, int type)
     return heuristics;
 }
 
-// A utility function to count inversions in given array 'arr[]'
 int getInvCount(int state)
 {
+    // A utility function to count inversions in given array 'arr[]'
     // don't touch this code please ;_;
     string strState = to_string(state);
     if ((state / 100000000) == 0)
@@ -131,9 +133,9 @@ int getInvCount(int state)
     return inv_count;
 }
 
-// This function returns true if given 8 puzzle is solvable.
 bool isSolvable(int state)
 {
+    // This function returns true if given 8 puzzle is solvable.
     // don't touch this code please ;_;
     // Count inversions in given 8 puzzle
     int invCount = getInvCount(state);
@@ -207,7 +209,15 @@ vector<int> getNeighbors(int state)
 
     return neighbors;
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// end utility functions//////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+// 
+// 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// start states solving functions/////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 tuple<vector<int>, long long, long long> solveBFS(int initialState)
 {
     vector<int> finalPath;
@@ -218,7 +228,7 @@ tuple<vector<int>, long long, long long> solveBFS(int initialState)
     set<int> isInFrontier;
     vector<int> neighbors;
     int state;
-    long long expandedCount = 0;
+    // long long expandedCount = 0;
 
     frontier.push_back(initialState);
     parentMap[initialState] = initialState;
@@ -230,7 +240,7 @@ tuple<vector<int>, long long, long long> solveBFS(int initialState)
         frontier.erase(frontier.begin());
         isInFrontier.emplace(state);
         explored.emplace(state);
-        ++expandedCount;
+        // ++expandedCount;
 
         if (state == 12345678)
             break;
@@ -257,7 +267,7 @@ tuple<vector<int>, long long, long long> solveBFS(int initialState)
     }
 
     tuple<vector<int>, long long, long long> result;
-    result = make_tuple(finalPath, expandedCount, finalPath.size());
+    result = make_tuple(finalPath, explored.size(), finalPath.size() - 1);
 
     return result;
 }
@@ -266,17 +276,19 @@ tuple<vector<int>, long long, long long> solveDFS(int initialState)
 {
     vector<int> finalPath;
 
-    unordered_map<int, int> parentMap; // bec insertion is O(1)
+    // unordered_map<int, int> parentMap; // bec insertion is O(1)
+    unordered_map<int, pair<int, long long>> parentMap; // bec insertion is O(1)
     vector<int> frontier;
     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
     set<int> isInFrontier;
     vector<int> neighbors;
     int state;
-    long long expandedCount = 0;
+    // long long expandedCount = 0;
     // long long depth = 0, maxDepth = 0;
+    long long maxDepth = 0;
 
     frontier.push_back(initialState);
-    parentMap[initialState] = initialState;
+    parentMap[initialState] = make_pair(initialState, 0) ;
     isInFrontier.emplace(initialState);
 
     while (!frontier.empty())
@@ -285,7 +297,9 @@ tuple<vector<int>, long long, long long> solveDFS(int initialState)
         frontier.pop_back();
         isInFrontier.emplace(state);
         explored.emplace(state);
-        ++expandedCount;
+        // ++expandedCount;
+
+        maxDepth = maxDepth > parentMap[state].second ? maxDepth : parentMap[state].second;
 
         if (state == 12345678)
             break;
@@ -293,6 +307,11 @@ tuple<vector<int>, long long, long long> solveDFS(int initialState)
         neighbors = getNeighbors(state);
 
         // bool neighborIsInserted = false;
+
+        // if(neighbors.size() == 0)
+        // {
+        //     continue;
+        // }
 
         for (auto neighbor = neighbors.rbegin(); neighbor != neighbors.rend(); neighbor++)
         {
@@ -306,7 +325,7 @@ tuple<vector<int>, long long, long long> solveDFS(int initialState)
                 // }
                 frontier.push_back(*neighbor);
                 isInFrontier.emplace(*neighbor);
-                parentMap[*neighbor] = state;
+                parentMap[*neighbor] = make_pair(state,parentMap[state].second+1);
             }
         }
         // if (neighbors.size() <= 0)
@@ -317,12 +336,13 @@ tuple<vector<int>, long long, long long> solveDFS(int initialState)
     finalPath.push_back(state);
     while (state != initialState)
     {
-        finalPath.push_back(parentMap[state]);
-        state = parentMap[state];
+        finalPath.push_back(parentMap[state].first);
+        state = parentMap[state].first;
     }
 
     tuple<vector<int>, long long, long long> result;
-    result = make_tuple(finalPath, expandedCount, finalPath.size());
+    // result = make_tuple(finalPath, explored.size(), finalPath.size());
+    result = make_tuple(finalPath, explored.size(), maxDepth);
 
     return result;
 }
@@ -334,7 +354,7 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
     // type = 0 ==> manhattan
     // type = 1 ==> euclidean
 
-    unordered_map<int, int> parentMap; // bec insertion is O(1)
+    unordered_map<int, pair<int, long long>> parentMap; // bec insertion is O(1)
     unordered_map<int, int> costMap;   // bec insertion is O(1)
     priority_queue<pi, vector<pi>, greater<pi>> frontier;
     set<int> explored; // bec find() is O(lg(n)) in worst case. unorderd is O(n) in worst case.
@@ -342,10 +362,11 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
     vector<int> neighbors;
     int state, newF;
     float f, g;
-    long long expandedCount = 0;
+    // long long expandedCount = 0;
+    long long maxDepth = 0;
 
     frontier.push(make_pair(hero(initialState, type), initialState));
-    parentMap[initialState] = initialState;
+    parentMap[initialState] = make_pair(initialState, 0);
     isInFrontier.emplace(initialState);
 
     while (!frontier.empty())
@@ -360,12 +381,16 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
 
         isInFrontier.emplace(state);
         explored.emplace(state);
-        ++expandedCount;
+        // ++expandedCount;
+
+        maxDepth = maxDepth > parentMap[state].second ? maxDepth : parentMap[state].second;
 
         if (state == 12345678)
             break;
 
         neighbors = getNeighbors(state);
+
+
 
         for (auto neighbor : neighbors)
         {
@@ -375,7 +400,7 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
                 frontier.push(make_pair(newF, neighbor));
                 costMap[neighbor] = newF;
                 isInFrontier.emplace(neighbor);
-                parentMap[neighbor] = state;
+                parentMap[neighbor] = make_pair(state,parentMap[state].second+1);
             }
             else if ((explored.find(neighbor) == explored.end()))
             {
@@ -384,7 +409,7 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
                 {
                     frontier.push(make_pair(newF, neighbor));
                     costMap[neighbor] = newF;
-                    parentMap[neighbor] = state;
+                    parentMap[neighbor] = make_pair(state,parentMap[state].second+1);
                 }
             }
         }
@@ -394,16 +419,25 @@ tuple<vector<int>, long long, long long> solveAStar(int initialState, int type)
     finalPath.push_back(state);
     while (state != initialState)
     {
-        finalPath.push_back(parentMap[state]);
-        state = parentMap[state];
+        finalPath.push_back(parentMap[state].first);
+        state = parentMap[state].first;
     }
 
     tuple<vector<int>, long long, long long> result;
-    result = make_tuple(finalPath, expandedCount, finalPath.size());
+    // result = make_tuple(finalPath, expandedCount, finalPath.size());
+    result = make_tuple(finalPath, explored.size(), maxDepth);
 
     return result;
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// end states solving functions///////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+// 
+// 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// start main driver code/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 extern "C"
 {
     EMSCRIPTEN_KEEPALIVE
@@ -446,3 +480,6 @@ extern "C"
         emscripten_run_script(Schar);
     }
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// end main driver code///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
